@@ -24,6 +24,26 @@ def compute_Ax(self):
 ```
 This is equivalent to a matrix with diagnonal elements = `4.0 + offset` and neighbor elements = `-1.0`.
 
+
+## CUDA Implementation
+The CUDA implementation was taken from tlieb1 (https://github.com/tileb1/CG-CUDA).
+The files are all contained in the `cuda` folder.
+```
+helper.h  # Constants etc.
+helper.c  # Helper utilities
+main.cu   # CG written in CUDA and the main script
+sequential.c  # CPU Implementation
+```
+Especially, the problem size `SIZE` is defined in `helper.h`, and the function used to generate the coefficient matrice A
+is in `helper.c`.
+To run the benchmark, you can simply compile using `nvcc`
+```
+nvcc main.cu sequential.c helper.c -o cg-cuda.out
+./cg-cuda.out
+```
+TODO: Currently, the matrice A used in this version is not consistent with the one used in Taichi's version.
+Need to be updated.
+
 ## References
 - Conjugate-gradient method: https://en.wikipedia.org/wiki/Conjugate_gradient_method
 - BiConjugate-gradient method: https://en.wikipedia.org/wiki/Biconjugate_gradient_method
