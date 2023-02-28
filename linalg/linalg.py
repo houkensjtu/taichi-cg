@@ -1,6 +1,8 @@
 import taichi as ti
 from math import sqrt
 
+ti_dtype = ti.f32
+
 @ti.data_oriented
 class LinearOperator:
     def __init__(self, matvec):
@@ -17,21 +19,21 @@ def cg(A, b, x, tol=1e-6, maxiter=5000):
         print(">>> Dimension not matched.")
     else:
         size = bshape
-    p = ti.field(dtype=float, shape=size)
-    r = ti.field(dtype=float, shape=size)
-    Ap = ti.field(dtype=float, shape=size)
-    alpha = ti.field(dtype=float, shape=())
-    beta = ti.field(dtype=float, shape=())
+    p = ti.field(dtype=ti_dtype, shape=size)
+    r = ti.field(dtype=ti_dtype, shape=size)
+    Ap = ti.field(dtype=ti_dtype, shape=size)
+    alpha = ti.field(dtype=ti_dtype, shape=())
+    beta = ti.field(dtype=ti_dtype, shape=())
 
     @ti.kernel
     def init():
         for I in ti.grouped(x):
-            p[I] = 0.0
             r[I] = b[I]
+            p[I] = 0.0
             Ap[I] = 0.0
             
     @ti.kernel
-    def reduce(p: ti.template(), q: ti.template()) -> float:
+    def reduce(p: ti.template(), q: ti.template()) -> ti_dtype:
         sum = 0.0
         for I in ti.grouped(p):
             sum += p[I] * q[I]
@@ -55,10 +57,9 @@ def cg(A, b, x, tol=1e-6, maxiter=5000):
     def solve():
         init()
         initial_rTr = reduce(r, r)
-        print(">>> Initial residual =", initial_rTr)
+        print(">>> Initial residual =", (initial_rTr))
         old_rTr = initial_rTr
         update_p()
-        print(x)
         # -- Main loop --
         for i in range(maxiter):
             A._matvec(p, Ap)  # compute Ap = A x p
@@ -74,7 +75,7 @@ def cg(A, b, x, tol=1e-6, maxiter=5000):
             beta[None] = new_rTr / old_rTr
             update_p()
             old_rTr = new_rTr
-            print(f'>>> Iter = {i+1:4}, Residual = {sqrt(new_rTr):e}')
+            print(f'>>> Iter = {i+1:4}, Residual = {(new_rTr):e}')
         
     solve()
     
